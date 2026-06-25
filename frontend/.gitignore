@@ -1,0 +1,11 @@
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Dependencies (also covered by repo-root .gitignore)
+/node_modules/
+
+# Size-limit / misc
+.size-limit.json.tmp
