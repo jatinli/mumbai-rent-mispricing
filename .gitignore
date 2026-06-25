@@ -22,9 +22,8 @@ Thumbs.db
 # ("Raw listings are never republished; only aggregates ship publicly").
 # Regenerate locally via the Phase B/C/E commands in README.md.
 data/raw/
-data/processed/listings.parquet
-data/processed/listings_geo.parquet
-data/processed/listings_scored.parquet
+# Any per-listing parquet (listings, _geo, _scored, _validated, future variants).
+data/processed/listings*.parquet
 outputs/arbitrage_list.csv
 outputs/rentlens_mumbai_map.html
 
