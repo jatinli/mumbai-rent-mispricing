@@ -48,11 +48,15 @@ export const tokens = {
     uc6: '#C77DFF', // Metro Line 6 (under construction)
   },
 
-  /** Three voices: serif (narrative), grotesk (UI), mono (every number). */
+  /**
+   * Three voices: serif (narrative), grotesk (UI), mono (every number).
+   * Families resolve to font-loader CSS variables set on <html> in the root
+   * layout: Fraunces via next/font/google, Geist Sans/Mono via the geist pkg.
+   */
   font: {
-    serif: "'Fraunces', Georgia, 'Times New Roman', serif",
-    ui: "'Geist', system-ui, -apple-system, sans-serif",
-    mono: "'Geist Mono', ui-monospace, 'SFMono-Regular', monospace",
+    serif: "var(--rl-font-fraunces), Georgia, 'Times New Roman', serif",
+    ui: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+    mono: "var(--font-geist-mono), ui-monospace, 'SFMono-Regular', monospace",
   },
 
   /** Type scale (px). Hero headline clamps separately in component styles. */
