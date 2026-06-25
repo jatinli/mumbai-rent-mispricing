@@ -1,3 +1,5 @@
+@import './tokens.css';
+
 *,
 *::before,
 *::after {
@@ -17,9 +19,9 @@ html {
 
 body {
   min-height: 100vh;
-  background: #0a0b0f;
-  color: #eceef3;
-  font-family: system-ui, sans-serif;
+  background: var(--rl-color-ink);
+  color: var(--rl-color-text-hi);
+  font-family: var(--rl-font-ui);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
