@@ -46,8 +46,11 @@ src/rentlens/
                uncertainty.py, mispricing.py
   causal/      diff_in_diff.py (synthetic-only DiD methodology demo)
   viz/         map.py (Folium map)
+  api/         export.py (aggregates-only JSON contract for the frontend)
   pipeline.py  end-to-end orchestrator (--source synthetic|real, --phase 1..6)
 config/cities/ mumbai.yaml (synthetic-generator + map constants)
+data/api/      static JSON the frontend reads (committed; aggregates only)
+frontend/      frontend app (separately owned — see the boundary section below)
 tests/         pytest suite (synthetic + fixture based)
 ```
 
@@ -70,6 +73,29 @@ that way: `data/raw/`, the per-listing `data/processed/listings*.parquet`,
 `outputs/arbitrage_list.csv`, and the regenerated real-data map
 `outputs/rentlens_mumbai_map.html`. The committed map under `docs/` is the
 synthetic-data version. Never add real per-listing data to a commit.
+
+## Backend / frontend boundary
+
+The repo is split so backend and frontend can be worked on in parallel without
+colliding:
+
+| Area | Owner | Directories |
+|------|-------|-------------|
+| Backend (Python pipeline) | backend dev | `src/`, `config/`, `data/`, `models/`, `tests/`, `pyproject.toml` |
+| Frontend (UI app) | frontend dev | `frontend/` |
+| **Data contract (the seam)** | backend writes, frontend reads | `data/api/*.json` |
+
+The two sides communicate **only** through the static JSON contract in
+`data/api/` — there is no server. The backend regenerates it with
+`python -m rentlens.api.export`; the frontend reads it. The contract is
+**aggregates only** and the exporter fails if any per-listing field leaks
+(`_assert_aggregates_only` in `src/rentlens/api/export.py`). See
+[`data/api/README.md`](data/api/README.md) for the field-by-field shape and
+[`frontend/README.md`](frontend/README.md) for the frontend workflow.
+
+Because `frontend/` and the backend directories are disjoint, day-to-day work
+won't conflict. The only shared touchpoints are `README.md`, `.gitignore`, the
+CI workflow, and `docs/` (the deploy target) — coordinate on those.
 
 ## Conventions
 

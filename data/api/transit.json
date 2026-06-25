@@ -1,0 +1,298 @@
+[
+  {
+    "station_name": "Andheri Metro",
+    "line": "Metro Line 1",
+    "latitude": 19.1197,
+    "longitude": 72.8464,
+    "status": "operational",
+    "opening_date": "2014-06-08"
+  },
+  {
+    "station_name": "Ghatkopar Metro",
+    "line": "Metro Line 1",
+    "latitude": 19.0867,
+    "longitude": 72.9081,
+    "status": "operational",
+    "opening_date": "2014-06-08"
+  },
+  {
+    "station_name": "Western Express Highway",
+    "line": "Metro Line 1",
+    "latitude": 19.1159,
+    "longitude": 72.8564,
+    "status": "operational",
+    "opening_date": "2014-06-08"
+  },
+  {
+    "station_name": "Chakala - J.B. Nagar",
+    "line": "Metro Line 1",
+    "latitude": 19.112,
+    "longitude": 72.8676,
+    "status": "operational",
+    "opening_date": "2014-06-08"
+  },
+  {
+    "station_name": "Airport Road",
+    "line": "Metro Line 1",
+    "latitude": 19.1101,
+    "longitude": 72.8742,
+    "status": "operational",
+    "opening_date": "2014-06-08"
+  },
+  {
+    "station_name": "Marol Naka (Line 1)",
+    "line": "Metro Line 1",
+    "latitude": 19.1082,
+    "longitude": 72.8795,
+    "status": "operational",
+    "opening_date": "2014-06-08"
+  },
+  {
+    "station_name": "Saki Naka",
+    "line": "Metro Line 1",
+    "latitude": 19.1035,
+    "longitude": 72.888,
+    "status": "operational",
+    "opening_date": "2014-06-08"
+  },
+  {
+    "station_name": "Asalpha",
+    "line": "Metro Line 1",
+    "latitude": 19.0964,
+    "longitude": 72.8949,
+    "status": "operational",
+    "opening_date": "2014-06-08"
+  },
+  {
+    "station_name": "Jagruti Nagar",
+    "line": "Metro Line 1",
+    "latitude": 19.0926,
+    "longitude": 72.9019,
+    "status": "operational",
+    "opening_date": "2014-06-08"
+  },
+  {
+    "station_name": "Gundavali",
+    "line": "Metro Line 7",
+    "latitude": 19.1145,
+    "longitude": 72.8552,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "SEEPZ (Line 3)",
+    "line": "Metro Line 3",
+    "latitude": 19.126,
+    "longitude": 72.8737,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "MIDC - Andheri",
+    "line": "Metro Line 3",
+    "latitude": 19.1174,
+    "longitude": 72.8736,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "Marol Naka (Line 3)",
+    "line": "Metro Line 3",
+    "latitude": 19.1085,
+    "longitude": 72.8786,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "Sahar Road",
+    "line": "Metro Line 3",
+    "latitude": 19.1022,
+    "longitude": 72.8652,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "Vikhroli",
+    "line": "Central Railway",
+    "latitude": 19.1115,
+    "longitude": 72.928,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "Kanjur Marg",
+    "line": "Central Railway",
+    "latitude": 19.1287,
+    "longitude": 72.928,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "Bhandup",
+    "line": "Central Railway",
+    "latitude": 19.1428,
+    "longitude": 72.9377,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "Nahur",
+    "line": "Central Railway",
+    "latitude": 19.1546,
+    "longitude": 72.9467,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "Mulund",
+    "line": "Central Railway",
+    "latitude": 19.1721,
+    "longitude": 72.9567,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "Jogeshwari (Western Line)",
+    "line": "Western Railway",
+    "latitude": 19.1361,
+    "longitude": 72.8489,
+    "status": "operational",
+    "opening_date": null
+  },
+  {
+    "station_name": "Powai Lake Station",
+    "line": "Metro Line 6",
+    "latitude": 19.12,
+    "longitude": 72.906,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Powai Udyan Station",
+    "line": "Metro Line 6",
+    "latitude": 19.1216,
+    "longitude": 72.899,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "IIT Powai Station",
+    "line": "Metro Line 6",
+    "latitude": 19.1242,
+    "longitude": 72.9137,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Saki Vihar Road Station",
+    "line": "Metro Line 6",
+    "latitude": 19.1262,
+    "longitude": 72.8905,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "SEEPZ Station (Line 6)",
+    "line": "Metro Line 6",
+    "latitude": 19.1294,
+    "longitude": 72.8826,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Mahakali Caves Station",
+    "line": "Metro Line 6",
+    "latitude": 19.1335,
+    "longitude": 72.8747,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Adarsh Nagar Station",
+    "line": "Metro Line 6",
+    "latitude": 19.1418,
+    "longitude": 72.8336,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Lokhandwala Station",
+    "line": "Metro Line 6",
+    "latitude": 19.1407,
+    "longitude": 72.8272,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Swami Samarth Nagar Station",
+    "line": "Metro Line 6",
+    "latitude": 19.1437,
+    "longitude": 72.8197,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Vikhroli Station (Line 6/4 interchange)",
+    "line": "Metro Line 6",
+    "latitude": 19.1247,
+    "longitude": 72.9365,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Kanjurmarg Station (Line 4)",
+    "line": "Metro Line 4",
+    "latitude": 19.1254,
+    "longitude": 72.9253,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Naval Housing Station",
+    "line": "Metro Line 4",
+    "latitude": 19.1329,
+    "longitude": 72.9277,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Bhandup Mahapalika Station",
+    "line": "Metro Line 4",
+    "latitude": 19.1388,
+    "longitude": 72.9308,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Mulund Fire Station Metro",
+    "line": "Metro Line 4",
+    "latitude": 19.1757,
+    "longitude": 72.9425,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Sonapur Station",
+    "line": "Metro Line 4",
+    "latitude": 19.1662,
+    "longitude": 72.9384,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Mulund Check Naka Station",
+    "line": "Metro Line 4",
+    "latitude": 19.1834,
+    "longitude": 72.9508,
+    "status": "under_construction",
+    "opening_date": null
+  },
+  {
+    "station_name": "Teen Hath Naka Station",
+    "line": "Metro Line 4",
+    "latitude": 19.1871,
+    "longitude": 72.9616,
+    "status": "under_construction",
+    "opening_date": null
+  }
+]

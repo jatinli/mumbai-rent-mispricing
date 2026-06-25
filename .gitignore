@@ -35,3 +35,17 @@ models/rentlens/*.pkl
 # tracking export referencing an internal pension-system project) — must
 # never be published.
 data/Updated_Data.xlsx
+
+# Frontend tooling (the frontend app itself lives in frontend/ and IS committed,
+# but its installed deps and build output are not).
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.next/
+frontend/.svelte-kit/
+npm-debug.log*
+yarn-error.log*
+
+# NOTE: data/api/*.json is the public frontend contract — aggregates only —
+# and is intentionally COMMITTED (not ignored). See data/api/README.md.
