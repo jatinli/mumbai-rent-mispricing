@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMRegressor
 
-from rentlens.model.features import add_derived, cv_folds, lgbm_Xy, TARGET
+from rentlens.model.features import add_derived, cv_folds, lgbm_Xy, TARGET, _available_numeric
 
 warnings.filterwarnings("ignore")
 
@@ -59,10 +59,13 @@ def spatial_cv_coverage(df: pd.DataFrame) -> pd.DataFrame:
     """Leave-one-locality-out coverage check for [q10, q90] intervals."""
     rows = []
     d = add_derived(df)
+    # Computed once on the full dataset — see gbm.py's spatial_cv comment for
+    # why letting each subset infer its own numeric_cols is unsafe.
+    numeric_cols = _available_numeric(d)
 
     for train_idx, test_idx, loc in cv_folds(d):
-        X_tr, y_tr, cats = lgbm_Xy(d.loc[train_idx])
-        X_te, y_te, _    = lgbm_Xy(d.loc[test_idx])
+        X_tr, y_tr, cats = lgbm_Xy(d.loc[train_idx], numeric_cols=numeric_cols)
+        X_te, y_te, _    = lgbm_Xy(d.loc[test_idx], numeric_cols=numeric_cols)
 
         q10 = _fit_quantile(X_tr, y_tr, cats, 0.10)
         q90 = _fit_quantile(X_tr, y_tr, cats, 0.90)
