@@ -121,6 +121,14 @@ def clean_listings(raw: pd.DataFrame) -> tuple[pd.DataFrame, list[dict]]:
         log.append({"step": step, "note": note, "rows_before": before, "rows_after": after,
                     "rows_dropped": before - after})
 
+    # 0. listing_id required — it's the row's only stable identity. A missing
+    # id can't be safely deduped against other missing ids (multiple distinct
+    # listings would collide on the same None), and a null id reaching the
+    # final dataset would corrupt any downstream merge keyed on listing_id.
+    n0 = len(df)
+    df = df[df["listing_id"].notna()].copy()
+    record("drop_missing_id", "listing_id is this row's only stable identity; can't dedupe or merge without it", n0, len(df))
+
     # 1. monthly_rent required
     n0 = len(df)
     df = df[df["monthly_rent"].notna()].copy()
@@ -158,6 +166,14 @@ def clean_listings(raw: pd.DataFrame) -> tuple[pd.DataFrame, list[dict]]:
     n0 = len(df)
     df = df[df["furnishing"].notna()].copy()
     record("drop_missing_furnishing", "no furnishing data on the card at all; nothing to impute from", n0, len(df))
+
+    # 5b. bathrooms required — it's both a dedup-key column and a model
+    # feature; pandas treats NaN==NaN as a match in drop_duplicates, so an
+    # unhandled missing bathroom count would risk silently merging two
+    # genuinely distinct units that both happen to lack one.
+    n0 = len(df)
+    df = df[df["bathrooms"].notna()].copy()
+    record("drop_missing_bathrooms", "bathrooms is a dedup key; an unhandled NaN here would let two distinct listings collide on the match", n0, len(df))
 
     # 6. rent outlier removal
     n0 = len(df)

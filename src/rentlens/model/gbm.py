@@ -20,7 +20,7 @@ import shap
 from lightgbm import LGBMRegressor
 
 from rentlens.model.features import (
-    add_derived, cv_folds, lgbm_Xy, regression_metrics, TARGET,
+    add_derived, cv_folds, lgbm_Xy, regression_metrics, TARGET, _available_numeric,
 )
 
 warnings.filterwarnings("ignore")
@@ -49,10 +49,16 @@ def _fit_lgbm(X_train: pd.DataFrame, y_train: pd.Series, cat_cols: list[str]) ->
 def spatial_cv(df: pd.DataFrame) -> pd.DataFrame:
     rows = []
     d = add_derived(df)
+    # Computed once on the full dataset so every fold's train/test pair gets
+    # the identical numeric feature set. Without this, a borderline-coverage
+    # feature could clear the 50% threshold in one subset but not the other,
+    # giving X_train and X_test different columns — LightGBM predict() then
+    # either errors on the shape mismatch or, worse, silently misaligns.
+    numeric_cols = _available_numeric(d)
 
     for train_idx, test_idx, loc in cv_folds(d):
-        X_train, y_train, cat_cols = lgbm_Xy(d.loc[train_idx])
-        X_test,  y_test,  _        = lgbm_Xy(d.loc[test_idx])
+        X_train, y_train, cat_cols = lgbm_Xy(d.loc[train_idx], numeric_cols=numeric_cols)
+        X_test,  y_test,  _        = lgbm_Xy(d.loc[test_idx], numeric_cols=numeric_cols)
 
         model = _fit_lgbm(X_train, y_train, cat_cols)
         log_pred = model.predict(X_test)

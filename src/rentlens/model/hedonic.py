@@ -17,7 +17,7 @@ import pandas as pd
 import statsmodels.api as sm
 
 from rentlens.model.features import (
-    add_derived, cv_folds, ols_Xy, regression_metrics, TARGET,
+    add_derived, cv_folds, ols_Xy, regression_metrics, TARGET, _available_numeric,
 )
 
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -90,13 +90,16 @@ def spatial_cv(df: pd.DataFrame) -> pd.DataFrame:
     """Leave-one-locality-out CV without locality dummies (strict spatial test)."""
     rows = []
     d = add_derived(df)
+    # Computed once on the full dataset so every fold's train/test pair uses
+    # the identical numeric feature set — see ols_Xy's numeric_cols docstring.
+    numeric_cols = _available_numeric(d)
 
     for train_idx, test_idx, loc in cv_folds(d):
         train = d.loc[train_idx]
         test = d.loc[test_idx]
 
-        X_train, y_train = ols_Xy(train, include_locality=False)
-        X_test, _        = ols_Xy(test,  include_locality=False)
+        X_train, y_train = ols_Xy(train, include_locality=False, numeric_cols=numeric_cols)
+        X_test, _        = ols_Xy(test,  include_locality=False, numeric_cols=numeric_cols)
 
         # Align columns (const always present; no locality dummies here)
         X_test = X_test.reindex(columns=X_train.columns, fill_value=0.0)

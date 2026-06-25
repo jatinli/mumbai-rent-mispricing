@@ -58,14 +58,25 @@ PROPERTY_TYPE_TITLE_TOKENS = [
 
 
 def _rupee_to_number(text: str) -> float | None:
-    """'₹3.5 Lac' -> 350000.0, '₹45,000' -> 45000.0, '₹1.2 Cr' -> 12000000.0."""
+    """'₹3.5 Lac' -> 350000.0, '₹45,000' -> 45000.0, '₹1.2 Cr' -> 12000000.0.
+
+    A single malformed/unexpected price string must never crash the whole
+    multi-page scrape over one listing — returns None on any parse failure
+    rather than propagating (Phase C cleaning already drops rows with no
+    monthly_rent, so a None here is handled, not silently lost).
+    """
     if not text:
         return None
     t = text.replace("₹", "").replace(",", "").strip()
-    m = re.search(r"([\d.]+)\s*(Lac|Lakh|Cr|Crore)?", t, re.IGNORECASE)
+    # Anchored to start at a digit — an unanchored [\d.]+ can match a lone
+    # stray "." (e.g. in "Approx. 45000") and then crash on float(".").
+    m = re.search(r"(\d[\d.]*)\s*(Lac|Lakh|Cr|Crore)?", t, re.IGNORECASE)
     if not m:
         return None
-    val = float(m.group(1))
+    try:
+        val = float(m.group(1))
+    except ValueError:
+        return None
     unit = (m.group(2) or "").lower()
     if unit in ("lac", "lakh"):
         val *= 100_000
@@ -105,7 +116,10 @@ class MagicBricksAdapter(ScraperAdapter):
                 data = json.loads(raw)
             except json.JSONDecodeError:
                 continue
-            if data and isinstance(data, list) and data[0].get("@type") in ("Apartment", "Residence"):
+            if (
+                data and isinstance(data, list) and isinstance(data[0], dict)
+                and data[0].get("@type") in ("Apartment", "Residence")
+            ):
                 return data
         return []
 
@@ -171,9 +185,14 @@ class MagicBricksAdapter(ScraperAdapter):
             area_text, area_type = None, None
         area_sqft = None
         if area_text:
-            m = re.search(r"([\d,.]+)", area_text)
+            # Anchored to start at a digit — see _rupee_to_number for why an
+            # unanchored class is a crash risk on stray leading punctuation.
+            m = re.search(r"(\d[\d,.]*)", area_text)
             if m:
-                area_sqft = float(m.group(1).replace(",", ""))
+                try:
+                    area_sqft = float(m.group(1).replace(",", ""))
+                except ValueError:
+                    area_sqft = None
 
         floor, total_floors = _floor_to_pair(summary.get("floor") or "")
 

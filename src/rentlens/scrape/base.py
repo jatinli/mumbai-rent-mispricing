@@ -125,9 +125,18 @@ class ScraperAdapter(abc.ABC):
                     break  # no more pages for this locality
 
                 canonical = [self.to_canonical(r) for r in raw_listings]
-                new_rows = [r for r in canonical if r.get(id_field) not in seen_ids]
+                # Rows with no parseable id (falsy/missing id_field) can never
+                # be safely judged as duplicates of one another — treat each
+                # as new rather than letting them collide on a shared None/""
+                # sentinel (which would silently drop unrelated listings, and
+                # later cause a cartesian-product blowup in any downstream
+                # merge on listing_id).
+                new_rows = [
+                    r for r in canonical
+                    if not r.get(id_field) or r.get(id_field) not in seen_ids
+                ]
                 if not new_rows:
                     break  # page repeated already-seen listings — end of distinct inventory
-                seen_ids.update(r[id_field] for r in new_rows)
+                seen_ids.update(r[id_field] for r in new_rows if r.get(id_field))
                 rows.extend(new_rows)
         return pd.DataFrame(rows)

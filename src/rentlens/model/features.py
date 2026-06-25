@@ -59,12 +59,24 @@ def _available_numeric(d: pd.DataFrame) -> list[str]:
 def ols_Xy(
     df: pd.DataFrame,
     include_locality: bool = True,
+    numeric_cols: list[str] | None = None,
 ) -> tuple[pd.DataFrame, pd.Series]:
-    """Return (X_with_const, y) for statsmodels OLS."""
+    """Return (X_with_const, y) for statsmodels OLS.
+
+    `numeric_cols`: pass this explicitly (computed once via
+    `_available_numeric` on the full dataset) whenever building X/y for a
+    train *and* a test subset of the same data — e.g. spatial CV. Letting
+    each subset independently call `_available_numeric` risks a different
+    column set per subset (a borderline-coverage feature could clear the
+    threshold in one subset but not the other), which breaks downstream
+    prediction. Defaults to per-call inference for the common single-dataset
+    case (fit_full, fit_cross_market).
+    """
     import statsmodels.api as sm
 
     d = add_derived(df)
-    numeric_cols = _available_numeric(d)
+    if numeric_cols is None:
+        numeric_cols = _available_numeric(d)
     # OLS can't tolerate *any* row-level NaN (unlike LightGBM, which handles
     # missing values natively) — a column can clear the coverage threshold
     # above and still have a few scattered gaps (e.g. real `floor` data at
@@ -79,11 +91,18 @@ def ols_Xy(
     return sm.add_constant(X, has_constant="add"), y
 
 
-def lgbm_Xy(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series, list[str]]:
-    """Return (X, y, categorical_feature_names) for LightGBM."""
+def lgbm_Xy(
+    df: pd.DataFrame,
+    numeric_cols: list[str] | None = None,
+) -> tuple[pd.DataFrame, pd.Series, list[str]]:
+    """Return (X, y, categorical_feature_names) for LightGBM.
+
+    See `ols_Xy`'s `numeric_cols` docstring — same reasoning applies here.
+    """
     d = add_derived(df)
     y = d[TARGET]
-    numeric_cols = _available_numeric(d)
+    if numeric_cols is None:
+        numeric_cols = _available_numeric(d)
     cat_cols = CAT + [LOCALITY_COL]
     for c in cat_cols:
         d[c] = d[c].astype("category")
