@@ -83,20 +83,6 @@ def locality_mispricing(df: pd.DataFrame) -> pd.DataFrame:
                        "pct_overpriced": 1, "pct_outside_iv": 1})
 
 
-def verify_planted_signal(tbl: pd.DataFrame) -> dict[str, dict]:
-    """Cross-market residual check — informational only. See verify_planted_signal_gt."""
-    results = {}
-    for loc, expected in PLANTED_BIAS.items():
-        observed = tbl.loc[loc, "residual_pct"] / 100
-        passed = abs(observed - expected) < 0.05
-        results[loc] = {
-            "expected_pct": round(expected * 100, 1),
-            "observed_pct": round(observed * 100, 2),
-            "pass": passed,
-        }
-    return results
-
-
 def verify_planted_signal_gt(df: pd.DataFrame) -> dict[str, dict]:
     """
     Ground-truth signal recovery using _fair_rent_gt (SYNTHETIC data only).

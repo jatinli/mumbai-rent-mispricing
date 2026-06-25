@@ -284,13 +284,14 @@ _LEGEND_HTML = """
     border-radius:50%;"></span> Planned</div>
   <div><span style="font-size:14px;color:#D97706;">&#9733;</span> Arbitrage pick</div>
   <div style="margin-top:8px;font-size:10px;color:#6B7280;">
-    ALL DATA SYNTHETIC &mdash; RentLens v0.1
+    {data_source_caption}
   </div>
 </div>"""
 
 
-def add_legend(m: folium.Map) -> None:
-    m.get_root().html.add_child(folium.Element(_LEGEND_HTML))
+def add_legend(m: folium.Map, data_source_caption: str) -> None:
+    html = _LEGEND_HTML.format(data_source_caption=data_source_caption)
+    m.get_root().html.add_child(folium.Element(html))
 
 
 # ── main entry ───────────────────────────────────────────────────────────────
@@ -326,9 +327,20 @@ def build_map(
     build_arbitrage_layer(scored).add_to(m)
 
     LayerControl(collapsed=False).add_to(m)
-    add_legend(m)
+    add_legend(m, _data_source_caption(scored))
 
     return m
+
+
+def _data_source_caption(scored: pd.DataFrame) -> str:
+    """The legend must never claim 'ALL DATA SYNTHETIC' over a map actually
+    built from real scraped listings (or vice versa) — derive the caption
+    from the data itself rather than hardcoding it.
+    """
+    sources = scored["source"].dropna().unique()
+    if len(sources) == 1 and sources[0] == "SYNTHETIC_GENERATED":
+        return "ALL DATA SYNTHETIC &mdash; RentLens v0.1"
+    return f"REAL DATA ({', '.join(sorted(sources))}) &mdash; RentLens v0.2"
 
 
 def run(

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import pytest
 
+from rentlens.scrape.base import CachedFetcher, ScraperAdapter
 from rentlens.scrape.magicbricks import (
     MagicBricksAdapter,
     _floor_to_pair,
@@ -33,6 +34,14 @@ def test_rupee_to_number(text, expected):
 def test_rupee_to_number_empty_is_none():
     assert _rupee_to_number("") is None
     assert _rupee_to_number(None) is None
+
+
+def test_rupee_to_number_leading_punctuation_does_not_crash():
+    # An unanchored regex ([\d.]+) can match a lone leading "." (e.g. in
+    # "Approx. 45000") and crash float(".") — the anchored (\d[\d.]*) pattern
+    # plus a try/except must return None instead of raising.
+    assert _rupee_to_number("Approx. 45000") == 45000.0
+    assert _rupee_to_number("...") is None
 
 
 def test_floor_to_pair_out_of():
@@ -170,6 +179,33 @@ def test_canonical_deposit_not_disclosed(parsed):
     assert canonical[0]["deposit"] is None
 
 
+def test_carpet_area_leading_punctuation_does_not_crash():
+    html = FIXTURE_HTML.replace(
+        '<div data-summary="carpet-area"><div class="mb-srp__card__summary--value">600 sqft</div></div>',
+        '<div data-summary="carpet-area"><div class="mb-srp__card__summary--value">Approx. 600 sqft</div></div>',
+    )
+    adapter = MagicBricksAdapter()
+    raw = adapter.parse_search_page(html, "Powai")
+    c = adapter.to_canonical(raw[0])
+    assert c["carpet_area_sqft"] == 600.0
+
+
+def test_apartment_jsonld_skips_non_dict_first_element():
+    # A JSON-LD array whose first element isn't a dict (e.g. an unrelated
+    # array of plain strings) must be skipped, not crash on data[0].get(...).
+    html = """
+    <html><body>
+    <script type="application/ld+json">["not", "a", "dict"]</script>
+    <div id="cardid1">
+      <h2 class="mb-srp__card--title" title="1 BHK Flat for Rent in Powai">1 BHK</h2>
+    </div>
+    </body></html>
+    """
+    adapter = MagicBricksAdapter()
+    raw = adapter.parse_search_page(html, "Powai")
+    assert raw[0]["geo"] is None
+
+
 def test_super_area_fallback_sets_area_type():
     """When only super-area is present, area_type_raw flags the fallback and
     carpet_area_sqft is left None (the cleaner applies the loading factor later)."""
@@ -183,3 +219,43 @@ def test_super_area_fallback_sets_area_type():
     assert c["area_type_raw"] == "super_area_fallback"
     assert c["carpet_area_sqft"] is None
     assert c["area_sqft_raw"] == 850.0
+
+
+# ── ScraperAdapter.fetch_listings: null-id dedup safety ────────────────────────
+
+class _FakeAdapter(ScraperAdapter):
+    """Pages 1 and 2 each contain one valid-id listing plus one listing whose
+    id never parses (None) — page 3 is empty, ending pagination. Without the
+    fix, page 1's null-id row marks None as "seen", so page 2's (unrelated)
+    null-id row would be wrongly treated as a duplicate and dropped.
+    """
+    source_name = "FAKE"
+
+    def search_url(self, locality: str, page: int) -> str:
+        return f"https://example.test/{locality}/{page}"
+
+    def parse_search_page(self, html: str, locality: str) -> list[dict]:
+        if html == "page1":
+            return [{"id": "A"}, {"id": None}]
+        if html == "page2":
+            return [{"id": "B"}, {"id": None}]
+        return []
+
+    def to_canonical(self, raw: dict) -> dict:
+        return {"listing_id": raw["id"], "locality": "X"}
+
+
+def test_null_id_rows_not_deduped_against_each_other(tmp_path):
+    fetcher = CachedFetcher(tmp_path, min_delay_s=0.0)
+    adapter = _FakeAdapter()
+
+    pages = {":1": "page1", ":2": "page2", ":3": "page3"}
+    fetcher.get = lambda url, cache_key=None: next(
+        v for k, v in pages.items() if cache_key.endswith(k)
+    )
+    df = adapter.fetch_listings(["Powai"], fetcher, max_pages_per_locality=3)
+
+    assert len(df) == 4  # A, None, B, None — not 3 (which would mean a
+    # null-id row got wrongly collapsed as a "duplicate" of the other)
+    assert df["listing_id"].isna().sum() == 2
+    assert set(df["listing_id"].dropna()) == {"A", "B"}

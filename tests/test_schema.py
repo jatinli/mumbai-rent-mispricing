@@ -1,5 +1,6 @@
 """Schema validation tests for the synthetic listing generator."""
 
+import textwrap
 from pathlib import Path
 
 import pandas as pd
@@ -82,3 +83,28 @@ def test_planted_signal_recoverable(listings):
             f"expected {res['expected_bias_pct']:+.1f}%, "
             f"observed {res['observed_bias_pct']:+.2f}%"
         )
+
+
+def test_non_seven_locality_config_not_truncated(tmp_path):
+    """The 'city-as-config' claim requires the generator to honour any number
+    of localities — not silently truncate to a hardcoded length-7 weight
+    vector. A 3-locality config must produce exactly n_total rows spread
+    across all 3 localities.
+    """
+    cfg = tmp_path / "tinytown.yaml"
+    cfg.write_text(textwrap.dedent("""
+        city: tinytown
+        display_name: Tinytown
+        bounding_box: { lat_min: 18.9, lat_max: 19.3, lon_min: 72.8, lon_max: 73.0 }
+        localities:
+          - { name: Alpha, lat: 19.10, lon: 72.90, base_rent_per_sqft: 60 }
+          - { name: Beta,  lat: 19.15, lon: 72.92, base_rent_per_sqft: 50 }
+          - { name: Gamma, lat: 19.20, lon: 72.95, base_rent_per_sqft: 45 }
+        planted_mispricing: {}
+        transit_table: data/reference/transit_mumbai.csv
+        spatial_cv_column: locality
+    """), encoding="utf-8")
+
+    df = generate_listings(cfg, n_total=300, seed=1)
+    assert len(df) == 300
+    assert set(df["locality"].unique()) == {"Alpha", "Beta", "Gamma"}

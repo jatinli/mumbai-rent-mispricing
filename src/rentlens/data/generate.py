@@ -60,8 +60,17 @@ def generate_listings(
     localities = cfg["localities"]
     rng = np.random.default_rng(seed)
 
-    # Distribute listings proportionally; add a few extra to Powai/Bandra
-    weights = np.array([1.3, 1.2, 1.1, 0.9, 1.0, 0.9, 0.8])
+    # Distribute listings across localities. The original Mumbai config has a
+    # mild hand-tuned skew (more listings in the first few localities); any
+    # other city just gets a uniform split. Deriving the weight vector from
+    # len(localities) — rather than a hardcoded length-7 array — keeps the
+    # zip() below from silently truncating localities for a differently-sized
+    # city, which would otherwise quietly break the "city-as-config" claim.
+    _MUMBAI_SKEW = np.array([1.3, 1.2, 1.1, 0.9, 1.0, 0.9, 0.8])
+    if len(localities) == len(_MUMBAI_SKEW):
+        weights = _MUMBAI_SKEW
+    else:
+        weights = np.ones(len(localities))
     weights = weights / weights.sum()
     counts = (weights * n_total).astype(int)
     counts[-1] += n_total - counts.sum()  # fix rounding
@@ -169,7 +178,6 @@ def validate_schema(df: pd.DataFrame) -> None:
 
 def planted_signal_check(df: pd.DataFrame) -> dict[str, dict]:
     results = {}
-    grand_median = df["monthly_rent"].median()
     for locality, expected_bias in PLANTED_BIAS.items():
         sub = df[df["locality"] == locality]
         fair = sub["_fair_rent_gt"]

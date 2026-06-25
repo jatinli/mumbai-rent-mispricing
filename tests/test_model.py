@@ -8,7 +8,9 @@ import pytest
 
 from rentlens.data.generate import generate_listings
 from rentlens.geo.transit import enrich
-from rentlens.model.features import add_derived, lgbm_Xy, ols_Xy, cv_folds, TARGET
+from rentlens.model.features import (
+    add_derived, lgbm_Xy, ols_Xy, cv_folds, TARGET, _available_numeric,
+)
 
 CONFIG = Path(__file__).resolve().parents[1] / "config" / "cities" / "mumbai.yaml"
 TRANSIT = Path(__file__).resolve().parents[1] / "data" / "reference" / "transit_mumbai.csv"
@@ -47,6 +49,43 @@ def test_lgbm_Xy_shape(geo_df):
     assert len(X) == len(geo_df)
     assert set(cats).issubset(set(X.columns))
     assert not X.isnull().any().any()
+
+
+def test_ols_Xy_explicit_numeric_cols_overrides_per_subset_inference(geo_df):
+    # Spatial CV holds out one locality as the test fold. If a feature is
+    # well-covered overall but happens to be entirely missing in just the
+    # held-out subset, letting ols_Xy infer numeric_cols independently per
+    # subset would silently drop the column from that fold's X — giving
+    # train and test mismatched columns. Passing the full dataset's
+    # numeric_cols explicitly (what hedonic.py/gbm.py/uncertainty.py's
+    # spatial CV now do) keeps every fold's column set identical.
+    d = geo_df.copy()
+    one_locality = d["locality"].unique()[0]
+    subset = d[d["locality"] == one_locality].copy()
+    subset["building_age_years"] = np.nan
+
+    full_cols = _available_numeric(add_derived(d))
+    assert "building_age_years" in full_cols  # well-covered over the full dataset
+
+    X_auto, _ = ols_Xy(subset, include_locality=False)
+    assert "building_age_years" not in X_auto.columns
+
+    X_explicit, _ = ols_Xy(subset, include_locality=False, numeric_cols=full_cols)
+    assert "building_age_years" in X_explicit.columns
+
+
+def test_lgbm_Xy_explicit_numeric_cols_overrides_per_subset_inference(geo_df):
+    d = geo_df.copy()
+    one_locality = d["locality"].unique()[0]
+    subset = d[d["locality"] == one_locality].copy()
+    subset["building_age_years"] = np.nan
+
+    full_cols = _available_numeric(add_derived(d))
+    X_auto, _, _ = lgbm_Xy(subset)
+    assert "building_age_years" not in X_auto.columns
+
+    X_explicit, _, _ = lgbm_Xy(subset, numeric_cols=full_cols)
+    assert "building_age_years" in X_explicit.columns
 
 
 def test_cv_folds_covers_all_localities(geo_df):

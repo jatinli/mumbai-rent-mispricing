@@ -220,3 +220,30 @@ def test_deposit_and_amenities_left_nan():
 def test_max_plausible_psf_constant_unchanged():
     # Guards the documented cleaning threshold against accidental drift.
     assert MAX_PLAUSIBLE_RENT_PSF == 1_000
+
+
+def test_missing_listing_id_dropped():
+    # A missing id can't be safely deduped against other missing ids, and
+    # would corrupt any downstream merge keyed on listing_id.
+    cleaned, log = _clean([_base_row(listing_id=None)])
+    assert len(cleaned) == 0
+    assert _step(log, "drop_missing_id")["rows_dropped"] == 1
+
+
+def test_two_missing_ids_both_dropped_not_deduped_together():
+    # Two distinct listings that both happen to lack an id must not collapse
+    # into one via the null-id step (this is a drop, not a dedup decision).
+    cleaned, log = _clean([
+        _base_row(listing_id=None, monthly_rent=50_000.0),
+        _base_row(listing_id=None, monthly_rent=70_000.0),
+    ])
+    assert len(cleaned) == 0
+    assert _step(log, "drop_missing_id")["rows_dropped"] == 2
+
+
+def test_missing_bathrooms_dropped():
+    # bathrooms is a dedup-key column; pandas treats NaN==NaN as a match in
+    # drop_duplicates, so an unhandled gap here risks merging distinct units.
+    cleaned, log = _clean([_base_row(listing_id="B1", bathrooms=np.nan)])
+    assert len(cleaned) == 0
+    assert _step(log, "drop_missing_bathrooms")["rows_dropped"] == 1
