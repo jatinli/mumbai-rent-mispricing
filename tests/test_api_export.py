@@ -119,13 +119,39 @@ def test_run_writes_contract_and_passes_guard(tmp_path):
     written = run(scored, transit, config, out)
 
     assert set(written) == {
-        "meta.json", "locality_mispricing.json",
+        "index.json", "meta.json", "locality_mispricing.json",
         "arbitrage_summary.json", "transit.json",
     }
     meta = json.loads((out / "meta.json").read_text(encoding="utf-8"))
     assert meta["n_listings"] == 18
     assert meta["source"] == ["MAGICBRICKS"]
 
+    index = json.loads((out / "index.json").read_text(encoding="utf-8"))
+    assert set(index["endpoints"].values()) == {
+        "meta.json", "locality_mispricing.json",
+        "arbitrage_summary.json", "transit.json",
+    }
+
     transit_json = json.loads((out / "transit.json").read_text(encoding="utf-8"))
     assert transit_json[0]["station_name"] == "X"
     assert transit_json[0]["opening_date"] == "2014-06-08"
+
+
+def test_run_publishes_to_extra_dirs(tmp_path):
+    scored = tmp_path / "scored.parquet"
+    _scored().to_parquet(scored, index=False)
+    transit = tmp_path / "transit.csv"
+    pd.DataFrame([{
+        "station_name": "X", "line": "L1", "latitude": 19.1,
+        "longitude": 72.9, "status": "operational", "opening_date": "2014-06-08",
+    }]).to_csv(transit, index=False)
+    config = tmp_path / "city.yaml"
+    config.write_text("city: t\ndisplay_name: T\nbounding_box: {}\n", encoding="utf-8")
+
+    canonical = tmp_path / "api"
+    published = tmp_path / "docs" / "api"
+    run(scored, transit, config, canonical, publish_dirs=[published])
+
+    # both copies must be byte-identical
+    for name in ["index.json", "meta.json", "locality_mispricing.json"]:
+        assert (canonical / name).read_bytes() == (published / name).read_bytes()

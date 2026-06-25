@@ -1,0 +1,17 @@
+[
+  {
+    "locality": "Mulund",
+    "n_candidates": 133,
+    "median_discount_pct": -24.94
+  },
+  {
+    "locality": "Powai",
+    "n_candidates": 54,
+    "median_discount_pct": -17.18
+  },
+  {
+    "locality": "Andheri East",
+    "n_candidates": 48,
+    "median_discount_pct": -15.54
+  }
+]

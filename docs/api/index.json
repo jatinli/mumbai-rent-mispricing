@@ -1,0 +1,14 @@
+{
+  "name": "RentLens Mumbai — public aggregates API",
+  "description": "Read-only, aggregates-only rental mispricing data. No individual listings are published.",
+  "version": "0.2",
+  "scrape_date": "2026-06-23",
+  "generated_at": "2026-06-25T08:59:58.985631+00:00",
+  "disclaimer": "Aggregates only. No individual listings are published. Real rental data scraped from MagicBricks for a private analytical study; transit data from OpenStreetMap.",
+  "endpoints": {
+    "meta": "meta.json",
+    "locality_mispricing": "locality_mispricing.json",
+    "arbitrage_summary": "arbitrage_summary.json",
+    "transit": "transit.json"
+  }
+}

@@ -1,0 +1,29 @@
+[
+  {
+    "locality": "Powai",
+    "n": 218,
+    "median_rent": 85000,
+    "fair_rent_cross_market": 73242,
+    "residual_pct": 14.88,
+    "pct_overpriced": 73.9,
+    "signal": "OVERPRICED"
+  },
+  {
+    "locality": "Andheri East",
+    "n": 175,
+    "median_rent": 70000,
+    "fair_rent_cross_market": 64856,
+    "residual_pct": 11.38,
+    "pct_overpriced": 66.9,
+    "signal": "OVERPRICED"
+  },
+  {
+    "locality": "Mulund",
+    "n": 168,
+    "median_rent": 50000,
+    "fair_rent_cross_market": 64975,
+    "residual_pct": -23.5,
+    "pct_overpriced": 10.1,
+    "signal": "UNDERPRICED"
+  }
+]

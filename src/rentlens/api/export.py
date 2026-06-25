@@ -129,6 +129,28 @@ def build_transit(transit_path: Path) -> list[dict]:
     return out
 
 
+def build_index(meta: dict) -> dict:
+    """Discovery document served at the API root, so hitting the base URL
+    lists the available endpoints rather than 404-ing."""
+    return {
+        "name": f"RentLens {meta['display_name']} — public aggregates API",
+        "description": (
+            "Read-only, aggregates-only rental mispricing data. "
+            "No individual listings are published."
+        ),
+        "version": "0.2",
+        "scrape_date": meta["scrape_date"],
+        "generated_at": meta["generated_at"],
+        "disclaimer": meta["disclaimer"],
+        "endpoints": {
+            "meta": "meta.json",
+            "locality_mispricing": "locality_mispricing.json",
+            "arbitrage_summary": "arbitrage_summary.json",
+            "transit": "transit.json",
+        },
+    }
+
+
 def build_meta(df: pd.DataFrame, config_path: Path) -> dict:
     with open(config_path) as fh:
         cfg = yaml.safe_load(fh)
@@ -151,28 +173,48 @@ def build_meta(df: pd.DataFrame, config_path: Path) -> dict:
     }
 
 
-def run(scored_path: Path, transit_path: Path, config_path: Path, out_dir: Path) -> dict[str, Path]:
-    df = pd.read_parquet(scored_path)
+def build_payloads(df: pd.DataFrame, transit_path: Path, config_path: Path) -> dict[str, object]:
     n_localities = df["locality"].nunique()
-
     locality = build_locality_mispricing(df)
     arbitrage = build_arbitrage_summary(df)
     _assert_aggregates_only(locality, n_localities, "locality_mispricing")
     _assert_aggregates_only(arbitrage, n_localities, "arbitrage_summary")
-
-    payloads = {
-        "meta.json": build_meta(df, config_path),
+    meta = build_meta(df, config_path)
+    return {
+        "index.json": build_index(meta),
+        "meta.json": meta,
         "locality_mispricing.json": locality,
         "arbitrage_summary.json": arbitrage,
         "transit.json": build_transit(transit_path),
     }
 
+
+def _write_payloads(payloads: dict[str, object], out_dir: Path) -> dict[str, Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     written = {}
     for name, payload in payloads.items():
         path = out_dir / name
         path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         written[name] = path
+    return written
+
+
+def run(
+    scored_path: Path,
+    transit_path: Path,
+    config_path: Path,
+    out_dir: Path,
+    publish_dirs: list[Path] | None = None,
+) -> dict[str, Path]:
+    """Write the contract to ``out_dir`` (the canonical seam the frontend repo
+    reads) and to any ``publish_dirs`` (e.g. ``docs/api`` — the copy GitHub
+    Pages serves as the live free API). Building the payloads once and writing
+    them everywhere keeps every published copy byte-identical."""
+    df = pd.read_parquet(scored_path)
+    payloads = build_payloads(df, transit_path, config_path)
+    written = _write_payloads(payloads, out_dir)
+    for d in publish_dirs or []:
+        _write_payloads(payloads, d)
     return written
 
 
@@ -183,9 +225,12 @@ if __name__ == "__main__":
         transit_path=root / "data" / "reference" / "transit_mumbai.csv",
         config_path=root / "config" / "cities" / "mumbai.yaml",
         out_dir=root / "data" / "api",
+        publish_dirs=[root / "docs" / "api"],  # served free by GitHub Pages
     )
     print(f"\n{'='*60}")
-    print("RENTLENS — Frontend data contract export (aggregates only)")
+    print("RENTLENS — Aggregates-only API export")
     print(f"{'='*60}")
-    for name, path in written.items():
-        print(f"  {name:<26} -> {path}")
+    print("  canonical : data/api/   (frontend repo reads this)")
+    print("  published : docs/api/   (GitHub Pages serves this free)")
+    for name in written:
+        print(f"    - {name}")
