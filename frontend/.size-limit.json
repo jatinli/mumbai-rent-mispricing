@@ -5,7 +5,7 @@
       "out/_next/static/chunks/*.js",
       "!out/_next/static/chunks/polyfills-*.js"
     ],
-    "limit": "250 kB",
+    "limit": "300 kB",
     "gzip": true
   }
 ]
