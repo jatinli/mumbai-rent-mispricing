@@ -123,6 +123,17 @@ penalty — flagged here rather than over-interpreted.
 
 ## Methodology
 
+> **Note on "Phase" numbering.** The `### Phase N` headings below describe the
+> *conceptual* analytical stages and do **not** map one-to-one onto the
+> `--phase N` flags of `rentlens.pipeline`. The orchestrator's CLI phases are:
+> `1` = synthetic generation, `2` = transit enrichment, `3` = models,
+> `4` = mispricing + arbitrage, `5` = causal DiD demo, `6` = interactive map.
+> (Real-data ingestion and cleaning — the conceptual "Phase 1/2" headings — run
+> as the separate `rentlens.scrape.run` and `rentlens.data.clean` commands, not
+> as `--phase` steps.) So, e.g., the causal demo under "Phase 6 — Causal
+> analysis" below is invoked with `--phase 5`, and the map with `--phase 6`,
+> exactly as shown in "Reproducing".
+
 ### Phase 1 — Real data ingestion (replaces synthetic generation as the default path)
 
 **Source selection** (`src/rentlens/scrape/`): checked robots.txt for 5 candidate
@@ -164,11 +175,14 @@ it collapsed legitimately distinct units in the same building).
 
 ### Phase 3 — Real transit table (`src/rentlens/geo/build_transit_table.py`)
 
-37 real stations pulled from OpenStreetMap via the Overpass API, scoped to the
-corridors serving the 3 target localities. Names/coordinates/construction-status
-are taken directly from OSM tags (high confidence — it's sourced data); opening
-dates and some line attributions are **left blank rather than guessed** where OSM
-doesn't carry them, with an explicit `confidence`/`review_note` column flagging
+37 real stations compiled from OpenStreetMap, scoped to the
+corridors serving the 3 target localities. The builder issues an Overpass API
+query and caches the raw response to `data/raw/osm/` for audit; the shipped table
+is then a manually-curated station list whose names/coordinates/construction-status
+are transcribed from that OSM data (each row records its source `osm_id` where
+known). This curation is deliberate — OSM's tagging for under-construction lines is
+inconsistent, so opening dates and some line attributions are **left blank rather
+than guessed** where OSM doesn't carry them, with an explicit `confidence`/`review_note` column flagging
 21 of 37 stations for manual confirmation (these columns are for human review only
 — the pipeline doesn't read them). The old synthetic transit table is preserved at
 [`data/reference/transit_mumbai_synthetic_backup.csv`](data/reference/transit_mumbai_synthetic_backup.csv).
@@ -236,7 +250,7 @@ pip install -e .
 # 2a. REAL DATA (default localities: Powai, Mulund, Andheri East)
 python -m rentlens.scrape.run              # scrape MagicBricks -> data/raw/magicbricks_listings_raw.parquet
 python -m rentlens.data.clean              # clean + validate  -> data/processed/listings.parquet
-python -m rentlens.geo.build_transit_table # real OSM transit table (only needed once / to refresh)
+python -m rentlens.geo.build_transit_table # write curated OSM-sourced transit table + refresh Overpass audit cache (table content changes only when the curated STATIONS list is edited)
 python -m rentlens.pipeline --city mumbai --source real    # phases 2-4, 6 (phase 1 & 5 auto-skipped)
 
 # 2b. OR fall back to the original synthetic methodology demonstration
@@ -322,7 +336,7 @@ Mumbai locality is added.
 
 ## Stack
 
-Python 3.14 · pandas · pyarrow · numpy · scikit-learn · lightgbm · shap ·
+Python 3.11+ · pandas · pyarrow · numpy · scikit-learn · lightgbm · shap ·
 statsmodels · geopy · folium · scipy · matplotlib · seaborn · pytest ·
 beautifulsoup4 · lxml · requests
 
