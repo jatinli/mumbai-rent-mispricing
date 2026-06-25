@@ -9,7 +9,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { toCssVariables } from '../lib/tokens/tokens.ts';
+import { toCssVariables } from '../lib/tokens/tokens';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const outPath = resolve(here, '../styles/tokens.css');
