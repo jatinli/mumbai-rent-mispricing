@@ -1,0 +1,11 @@
+[
+  {
+    "name": "total app JS chunks (gzip, excl. legacy polyfills)",
+    "path": [
+      "out/_next/static/chunks/*.js",
+      "!out/_next/static/chunks/polyfills-*.js"
+    ],
+    "limit": "230 kB",
+    "gzip": true
+  }
+]
